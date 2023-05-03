@@ -20,11 +20,11 @@ class Graph:
         return self.graph is not None
 
     def nodes(self):
-        """return all node id of the graph"""
+        """return all node id of the dataset"""
         return list(self.graph.nodes)
 
     def edges(self):
-        """return all edges of a graph"""
+        """return all edges of a dataset"""
         return list(self.graph.edges)
 
     def get_graph_properties(self):
@@ -47,7 +47,7 @@ class Graph:
 
     def get_adj_node_dict(self):
         """
-        get the adjacent list of a multi-directed-graph
+        get the adjacent list of a multi-directed-dataset
         note that if there are multi lines between two nodes, only one is recorded in a adj_list
         e.g. (0, 1, color='red) and (0, 1, color='blue') --> 0: 1
         TODO: will multi-lines affect random walk?
@@ -62,7 +62,7 @@ class Graph:
 
     def remove_self_loop(self):
         """
-        remove self-loop in graph
+        remove self-loop in dataset
         e.g. (1 -> 1)
         :return refined adjacent dict
         """
@@ -77,7 +77,7 @@ class Graph:
 
     def check_self_loop(self):
         """
-        check if a graph has any self-loop
+        check if a dataset has any self-loop
         :return: true or false
         """
         adjacent = self.get_adj_node_dict()
@@ -165,7 +165,7 @@ class Graph:
         for edge in self.edges():
             if idx in self.graph.edges[edge]["slices"]:
                 filtered_edges.append(edge)
-        # new graph
+        # new dataset
         G = nx.MultiDiGraph()
         G.add_nodes_from(filtered_nodes)
         G.add_edges_from(filtered_edges)

@@ -1,7 +1,7 @@
 import os
 import json
 import networkx as nx
-from .graphs import Graph
+from .graph import Graph
 
 
 def read_json(path):
