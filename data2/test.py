@@ -11,7 +11,7 @@ class Test(unittest.TestCase):
         self.base_path = "/Users/fy/Documents/workspace/ccs2vec/samples"
 
     def test_dataset(self):
-        ds = CommitDataset(self.base_path)
+        ds = SliceDataset(self.base_path)
         for data in ds:
             print(data)
 

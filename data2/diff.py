@@ -52,6 +52,7 @@ class Hunk:
 
     def parse(self, hunk: dict, g1: Graph, g2: Graph):
         slice_edges1 = hunk['slice1']['edges']
-        self.slice1 = g1.get_sub_graph(slice_edges1)
+        self.slice1 = SubGraph(g1, slice_edges1)
         slice_edges2 = hunk['slice2']['edges']
-        self.slice2 = g2.get_sub_graph(slice_edges2)
+        self.slice2 = SubGraph(g2, slice_edges2)
+

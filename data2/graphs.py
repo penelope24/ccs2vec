@@ -3,6 +3,7 @@ from typing import List, Union
 
 import torch
 from torch_geometric.data import Data
+from torch_geometric.utils import remove_isolated_nodes
 
 from data.vocab import special_tokens
 from utils.tokenize import tokenize
@@ -101,34 +102,46 @@ class Graph:
         self.edge_index = None
         self.edge_attr = None
         self.y = None
-        self.graph = None
+        self.data = None
         self.parse()
+
+    @staticmethod
+    def get_coo_matrix(edges: List[Edge]):
+        row = []
+        col = []
+        for edge in edges:
+            src = edge.src
+            tgt = edge.tgt
+            row.append(src)
+            col.append(tgt)
+        return torch.LongTensor([row, col])
+
+    @staticmethod
+    def get_node_feature_matrix(nodes: List[Node], stoi: dict):
+        ft = []
+        for node in nodes:
+            tokens = node.tokens
+            feature = [stoi[t] for t in tokens]
+            ft.append(feature)
+        return torch.Tensor(ft)
+
+    @staticmethod
+    def get_edge_attr_matrix(edges: List[Edge]):
+        edge_attr = [e.type.value for e in edges]
+        return torch.Tensor(edge_attr)
 
     def parse(self):
         # x
         if self.stoi is None:
             self.x = torch.zeros(len(self.nodes), 1)
         else:
-            features = []
-            for node in self.nodes:
-                tokens = node.tokens
-                feature = [self.stoi[t] for t in tokens]
-                features.append(feature)
-            self.x = torch.Tensor(features)
+            self.x = self.get_node_feature_matrix(self.nodes, self.stoi)
         # edge_index
-        s = []
-        t = []
-        for edge in self.edges:
-            src = edge.src
-            tgt = edge.tgt
-            s.append(src)
-            t.append(tgt)
-        self.edge_index = torch.Tensor([s, t], dtype=torch.long)
+        self.edge_index = self.get_coo_matrix(self.edges)
         # edge_attr
-        edge_attr = [e.type.value for e in self.edges]
-        self.edge_attr = torch.Tensor(edge_attr)
+        self.edge_attr = self.get_edge_attr_matrix(self.edges)
         # pyg graph
-        self.graph = Data(x=self.x, edge_index=self.edge_index, edge_attr=self.edge_attr)
+        self.data = Data(x=self.x, edge_index=self.edge_index, edge_attr=self.edge_attr)
     
     # fixme
     def get_sub_graph(self, edges: List[Union[dict, Edge]]):
@@ -148,9 +161,12 @@ class Graph:
             s.append(src)
             t.append(tgt)
         sub_edge_index = torch.Tensor([s, t], dtype=torch.long)
-        sub_data = self.graph.edge_subgraph(sub_edge_index)
+        sub_data = self.data.edge_subgraph(sub_edge_index)
         sub_data = sub_data.subgraph(torch.Tensor(sub_nodes))
         return sub_data
+
+    def get_pyg_graph(self):
+        return self.data
 
 
 class SubGraph(Graph):
@@ -158,9 +174,14 @@ class SubGraph(Graph):
     def __init__(self, graph: Graph, edges: List[dict]):
         self.m_id = graph.m_id
         self.stoi = graph.stoi
-        self.x = None
-        self.edge_index = None
-        self.edge_attr = None
-        self.y = None
-        self.graph = None
+        self.graph = graph
         super().__init__(self.m_id, graph.nodes, edges, self.stoi)
+
+    def parse(self):
+        edge_index = self.get_coo_matrix(self.edges)
+        edge_attr = self.get_edge_attr_matrix(self.edges)
+        edge_index, edge_attr, mask = remove_isolated_nodes(edge_index, edge_attr, num_nodes=len(self.nodes))
+        self.x = self.graph.x * mask
+        self.edge_index = edge_index
+        self.edge_attr = edge_attr
+        self.data = Data(x=self.x, edge_index=self.edge_index, edge_attr=self.edge_attr)
