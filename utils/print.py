@@ -25,3 +25,4 @@ def print_stats_rate(size_list: list):
     print('top 2 stat: {:d}, top 2 rate: {:3f}'.format(t2, r2))
     print('top 3 stat: {:d}, top 3 rate: {:3f}'.format(t3, r3))
 
+

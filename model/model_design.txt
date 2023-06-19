@@ -1,0 +1,13 @@
+# model
+seq2seq
+    encoder
+        GNN: accept a super graph of multi PDGs.
+    decoder
+        GNN: accept a super graph of multi PDGs
+    connect:
+        decoder accepts hidden states of all changed nodes in encoder
+    param_sharing:
+        encoder & decoder shares parameters of:
+            1. node & edge feature transformation matrix weights
+            2. aggregation matrix weights
+            3. attention weights

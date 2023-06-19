@@ -1,0 +1,20 @@
+# node reconstruction
+data.x : [N, 300]
+data.edge_index: [2, E]
+data.edge_attr: [E, 5] (slice_contain, path_contain, data_flow, ctrl_flow, self_loop)
+data.y : [MASK]
+output: [N, 300]
+loss : nce(output[mask], data.x[data.y])
+
+# edge reconstruction
+
+# change translation
+
+# commit msg generation
+
+# commit classification
+
+# JIT prediction
+
+# defect prediction
+
