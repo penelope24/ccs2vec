@@ -1,8 +1,6 @@
 import unittest
 
-import torch
 from transformers import BartConfig
-from model.transformers.funcs import *
 
 
 def create_edge_index(N):
@@ -52,3 +50,10 @@ class Test(unittest.TestCase):
         mask = torch.split(mask, edge_indices.size(1), dim=1)
         print(edge_indices.size())
         print(edge_indices.size(1))
+
+    def test_hf(self):
+        from transformers import AutoTokenizer, AutoModelForMaskedLM
+
+        tokenizer = AutoTokenizer.from_pretrained("huggingface/CodeBERTa-small-v1")
+
+        model = AutoModelForMaskedLM.from_pretrained("huggingface/CodeBERTa-small-v1")

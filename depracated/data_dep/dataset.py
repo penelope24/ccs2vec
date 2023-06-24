@@ -2,7 +2,7 @@ import json
 import os
 from abc import ABC, abstractmethod
 
-from diff import *
+from depracated.data_dep.diff import *
 
 
 def list_json_files(path):
@@ -32,7 +32,7 @@ class DiffDataset(ABC):
         pass
 
 
-class CommitDataset(DiffDataset):
+class SliceDataset(DiffDataset):
 
     def __init__(self, path):
         self.path = path
@@ -43,7 +43,34 @@ class CommitDataset(DiffDataset):
         json_files = list_json_files(self.path)
         for json_file in json_files:
             commit = read_json(json_file)
-            self.data.append(commit)
+            for file in commit.files:
+                for change in file.changes:
+                    self.data.append(change.slice1)
+                    self.data.append(change.slice2)
+
+    def __len__(self):
+        return len(self.data)
+
+    def __iter__(self):
+        for data in self.data:
+            yield data
+
+
+class SliceVirtualDataset(DiffDataset):
+
+    def __init__(self, path):
+        self.path = path
+        self.data = []
+        self.load()
+
+    def load(self):
+        json_files = list_json_files(self.path)
+        for json_file in json_files:
+            commit = read_json(json_file)
+            for file in commit.files:
+                for change in file.changes:
+                    self.data.append(change.vg1)
+                    self.data.append(change.vg2)
 
     def __len__(self):
         return len(self.data)
@@ -75,7 +102,7 @@ class FileDataset(DiffDataset):
             yield data
 
 
-class SliceDataset(DiffDataset):
+class CommitDataset(DiffDataset):
 
     def __init__(self, path):
         self.path = path
@@ -86,10 +113,7 @@ class SliceDataset(DiffDataset):
         json_files = list_json_files(self.path)
         for json_file in json_files:
             commit = read_json(json_file)
-            for file in commit.files:
-                for hunk in file.hunks:
-                    self.data.append(hunk.slice1)
-                    self.data.append(hunk.slice2)
+            self.data.append(commit)
 
     def __len__(self):
         return len(self.data)

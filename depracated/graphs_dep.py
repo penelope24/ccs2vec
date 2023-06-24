@@ -5,7 +5,7 @@ import torch
 from torch_geometric.data import Data
 from torch_geometric.utils import remove_isolated_nodes
 
-from data.vocab import special_tokens
+from data_dep.vocab import special_tokens
 from utils.tokenize import tokenize
 
 

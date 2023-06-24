@@ -1,14 +1,6 @@
 import unittest
 
-import matplotlib.pyplot as plt
 import networkx as nx
-from torch_geometric.loader import DataLoader
-from torch_geometric.utils import add_self_loops, degree
-
-from data.dataset import *
-from data.graph import *
-from data.vocab import *
-from data.seq import *
 
 
 class Test(unittest.TestCase):
@@ -61,7 +53,7 @@ class Test(unittest.TestCase):
         data = Graph.create(vg.nodes, vg.edges, self.vocab.word2idx)
         print(data.edge_index)
         # G = nx.Graph()
-        # G.add_edges_from(data.edge_index.t().tolist())
+        # G.add_edges_from(data_dep.edge_index.t().tolist())
         # pos = nx.spring_layout(G)  # 布局算法可以根据需要选择
         # # pos = nx.nx_agraph.pygraphviz_layout(G, prog='dot')
         # nx.draw_networkx(G, pos, with_labels=True, node_color='lightblue', node_size=500)
@@ -94,7 +86,7 @@ class Test(unittest.TestCase):
         print(num_mask_nodes)
         print(mask_indices)
 
-        # 对 data.x 进行遮掩
+        # 对 data_dep.x 进行遮掩
         data.x[mask_indices] = 0.0
 
         mask_mask = torch.zeros(num_nodes, dtype=torch.bool)
@@ -106,7 +98,7 @@ class Test(unittest.TestCase):
         print(ei)
 
 
-        # indices = data.x[11]
+        # indices = data_dep.x[11]
         # indices = [int(n) for n in indices]
         # print(indices)
         # words = [self.vocab.idx2word[i] for i in indices]

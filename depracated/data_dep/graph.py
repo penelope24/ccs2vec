@@ -2,11 +2,10 @@ import random
 from typing import Optional
 
 import torch
-from torch_geometric.data import Data
 # from torch_sparse import coalesce
 
 
-from data.diff import *
+from depracated.data_dep.diff import *
 
 max_node_features_len = 24
 
@@ -29,21 +28,21 @@ def mask_nodes(data, mask_ratio):
     # 随机选择要遮掩的节点索引
     mask_indices = random.sample(range(num_nodes), num_mask_nodes)
 
-    # 对 data.x 进行遮掩
+    # 对 data_dep.x 进行遮掩
     data.x[mask_indices] = 0.0
 
-    # 对 data.edge_index 进行调整
+    # 对 data_dep.edge_index 进行调整
     mask_mask = torch.zeros(num_nodes, dtype=torch.bool)
     mask_mask[mask_indices] = 1
     mask_mask = mask_mask[data.edge_index[0]]
     data.edge_index = data.edge_index[:, ~mask_mask]
 
-    # 对 data.edge_attr 进行调整（如果存在）
+    # 对 data_dep.edge_attr 进行调整（如果存在）
     if data.edge_attr is not None:
         data.edge_attr = data.edge_attr[~mask_mask]
 
     # 重新编制索引，确保索引的连续性
-    # data.edge_index, _ = coalesce(data.edge_index, None, num_nodes, num_nodes)
+    # data_dep.edge_index, _ = coalesce(data_dep.edge_index, None, num_nodes, num_nodes)
 
     return data
 

@@ -2,7 +2,8 @@ import json
 import os
 from abc import ABC, abstractmethod
 
-from data.diff import *
+from diff import *
+from seq import Seq
 
 
 def list_json_files(path):
@@ -32,7 +33,7 @@ class DiffDataset(ABC):
         pass
 
 
-class SliceDataset(DiffDataset):
+class CCSDataset(DiffDataset):
 
     def __init__(self, path):
         self.path = path
@@ -44,9 +45,9 @@ class SliceDataset(DiffDataset):
         for json_file in json_files:
             commit = read_json(json_file)
             for file in commit.files:
-                for change in file.changes:
-                    self.data.append(change.slice1)
-                    self.data.append(change.slice2)
+                for hunk in file.hunks:
+                    self.data.append(hunk.slice1)
+                    self.data.append(hunk.slice2)
 
     def __len__(self):
         return len(self.data)
@@ -56,68 +57,46 @@ class SliceDataset(DiffDataset):
             yield data
 
 
-class SliceVirtualDataset(DiffDataset):
+class NodeReConstructDataset(CCSDataset):
 
-    def __init__(self, path):
-        self.path = path
-        self.data = []
-        self.load()
-
-    def load(self):
-        json_files = list_json_files(self.path)
-        for json_file in json_files:
-            commit = read_json(json_file)
-            for file in commit.files:
-                for change in file.changes:
-                    self.data.append(change.vg1)
-                    self.data.append(change.vg2)
-
-    def __len__(self):
-        return len(self.data)
+    def __init__(self, path, node_mask):
+        super().__init__(path)
+        self.node_mask = node_mask
 
     def __iter__(self):
-        for data in self.data:
-            yield data
+        for sample in self.data:
+            text = Seq.gen(sample)
+            mask = self.node_mask(sample)
+            x = text * mask
+            y = text
+            yield x, y
 
 
-class FileDataset(DiffDataset):
+class DataFlowEdgeReConstructDataset(CCSDataset):
 
-    def __init__(self, path):
-        self.path = path
-        self.data = []
-        self.load()
-
-    def load(self):
-        json_files = list_json_files(self.path)
-        for json_file in json_files:
-            commit = read_json(json_file)
-            for file in commit.files:
-                self.data.append(file)
-
-    def __len__(self):
-        return len(self.data)
+    def __init__(self, path, edge_mask):
+        super().__init__(path)
+        self.edge_mask = edge_mask
 
     def __iter__(self):
-        for data in self.data:
-            yield data
+        for sample in self.data:
+            adj_mat = sample.get_data_flow_adj_mat()
+            mask = self.edge_mask(adj_mat)
+            x = adj_mat * mask
+            y = adj_mat
+            yield x, y
 
 
-class CommitDataset(DiffDataset):
+class CtrlFlowReConstructDataset(CCSDataset):
 
-    def __init__(self, path):
-        self.path = path
-        self.data = []
-        self.load()
-
-    def load(self):
-        json_files = list_json_files(self.path)
-        for json_file in json_files:
-            commit = read_json(json_file)
-            self.data.append(commit)
-
-    def __len__(self):
-        return len(self.data)
+    def __init__(self, path, edge_mask):
+        super().__init__(path)
+        self.edge_mask = edge_mask
 
     def __iter__(self):
-        for data in self.data:
-            yield data
+        for sample in self.data:
+            adj_mat = sample.get_ctrl_flow_adj_mat()
+            mask = self.edge_mask(adj_mat)
+            x = adj_mat * mask
+            y = adj_mat
+            yield x, y
